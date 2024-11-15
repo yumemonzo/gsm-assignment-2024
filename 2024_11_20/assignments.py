@@ -25,7 +25,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     trainer = Trainer(model, train_loader, valid_loader, criterion, optimizer, device, save_path="best_model.pth")
-    trainer.training(num_epochs=50)
+    trainer.training(num_epochs=30)
 
     test_loss, test_acc = trainer.test(test_loader)
     print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}")
