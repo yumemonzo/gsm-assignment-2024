@@ -10,22 +10,32 @@ from trainer import Trainer
 
 def main():
     logger = logging.getLogger("training")
+    logger.setLevel(logging.DEBUG)
+
+    file_handler = logging.FileHandler("training.log")
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
     transform = get_transform()
 
     train_dataset, test_dataset = get_datasets(transform=transform)
     train_dataset, valid_dataset = split_dataset(dataset=train_dataset, split_size=0.8)
-    logging.info(f"train_dataset: {len(train_dataset)} | valid_dataset: {len(valid_dataset)} | test_dataset: {len(test_dataset)}\n")
+    logger.info(f"train_dataset: {len(train_dataset)} | valid_dataset: {len(valid_dataset)} | test_dataset: {len(test_dataset)}\n")
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=64, shuffle=True)
     valid_loader = DataLoader(dataset=valid_dataset, batch_size=64, shuffle=False)
     test_loader = DataLoader(dataset=test_dataset, batch_size=64, shuffle=False)
 
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logging.info(f"device: {device}\n")
+    logger.info(f"device: {device}\n")
 
     model = SimpleCNN().to(device)
-    logging.info(f"model: {model}\n")
+    logger.info(f"model: {model}\n")
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
