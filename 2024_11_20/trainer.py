@@ -1,8 +1,8 @@
 import torch
-
+from torch.utils.tensorboard import SummaryWriter
 
 class Trainer:
-    def __init__(self, model, train_loader, valid_loader, criterion, optimizer, device, save_path):
+    def __init__(self, model, train_loader, valid_loader, criterion, optimizer, device, save_path, log_dir="runs"):
         self.model = model
         self.train_loader = train_loader
         self.valid_loader = valid_loader
@@ -11,6 +11,7 @@ class Trainer:
         self.device = device
         self.save_path = save_path
         self.lowest_loss = float('inf')
+        self.writer = SummaryWriter(log_dir)  # TensorBoard SummaryWriter 초기화
 
     def train(self):
         self.model.train()
@@ -41,7 +42,7 @@ class Trainer:
                 correct += (outputs.argmax(1) == labels).sum().item()
         accuracy = correct / len(self.valid_loader.dataset)
         return total_loss / len(self.valid_loader), accuracy
-
+    
     def test(self, test_loader):
         self.model.eval()
         total_loss = 0
@@ -65,7 +66,14 @@ class Trainer:
             logger.info(f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc:.4f}")
             logger.info(f"Valid Loss: {valid_loss:.4f}, Valid Accuracy: {valid_acc:.4f}")
 
+            # TensorBoard 기록: 동일한 그래프에 기록
+            self.writer.add_scalars('Loss', {'Train': train_loss, 'Valid': valid_loss}, epoch)
+            self.writer.add_scalars('Accuracy', {'Train': train_acc, 'Valid': valid_acc}, epoch)
+
             if valid_loss < self.lowest_loss:
                 self.lowest_loss = valid_loss
                 torch.save(self.model.state_dict(), self.save_path)
                 logger.info(f"New best model saved with Validation Loss: {valid_loss:.4f}")
+
+        # TensorBoard Writer 닫기
+        self.writer.close()
