@@ -1,17 +1,18 @@
+import os
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
 class Trainer:
-    def __init__(self, model, train_loader, valid_loader, criterion, optimizer, device, save_path, log_dir="runs"):
+    def __init__(self, model, train_loader, valid_loader, criterion, optimizer, device, save_dir):
         self.model = model
         self.train_loader = train_loader
         self.valid_loader = valid_loader
         self.criterion = criterion
         self.optimizer = optimizer
         self.device = device
-        self.save_path = save_path
+        self.save_dir = save_dir
         self.lowest_loss = float('inf')
-        self.writer = SummaryWriter(log_dir)  # TensorBoard SummaryWriter 초기화
+        self.writer = SummaryWriter(save_dir)  # TensorBoard SummaryWriter 초기화
 
     def train(self):
         self.model.train()
@@ -72,7 +73,7 @@ class Trainer:
 
             if valid_loss < self.lowest_loss:
                 self.lowest_loss = valid_loss
-                torch.save(self.model.state_dict(), self.save_path)
+                torch.save(self.model.state_dict(), os.path.join(self.save_dir, "best_model.pth"))
                 logger.info(f"New best model saved with Validation Loss: {valid_loss:.4f}")
 
         # TensorBoard Writer 닫기
