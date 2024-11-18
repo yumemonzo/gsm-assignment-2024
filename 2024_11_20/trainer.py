@@ -56,16 +56,16 @@ class Trainer:
         accuracy = correct / len(test_loader.dataset)
         return total_loss / len(test_loader), accuracy
 
-    def training(self, num_epochs):
+    def training(self, num_epochs, logger):
         for epoch in range(num_epochs):
             train_loss, train_acc = self.train()
             valid_loss, valid_acc = self.valid()
 
-            print(f"Epoch {epoch+1}/{num_epochs}")
-            print(f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc:.4f}")
-            print(f"Valid Loss: {valid_loss:.4f}, Valid Accuracy: {valid_acc:.4f}")
+            logger.info(f"Epoch {epoch+1}/{num_epochs}")
+            logger.info(f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc:.4f}")
+            logger.info(f"Valid Loss: {valid_loss:.4f}, Valid Accuracy: {valid_acc:.4f}")
 
             if valid_loss < self.lowest_loss:
                 self.lowest_loss = valid_loss
                 torch.save(self.model.state_dict(), self.save_path)
-                print(f"New best model saved with Validation Loss: {valid_loss:.4f}")
+                logger.info(f"New best model saved with Validation Loss: {valid_loss:.4f}")
