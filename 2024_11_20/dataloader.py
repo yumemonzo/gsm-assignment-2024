@@ -23,7 +23,10 @@ def get_transform() -> v2.Compose:
     """
     transform = v2.Compose([
         v2.ToImage(),  # 이미지를 PIL.Image 형식으로 변환
-        v2.ToDtype(torch.float32, scale=False),  # 데이터를 float32 형식으로 변환
+        v2.RandomHorizontalFlip(p=0.5),  # 랜덤 수평 뒤집기
+        v2.RandomCrop(size=(32, 32), padding=4),  # 랜덤 크롭 (패딩 포함)
+        v2.ToDtype(torch.float32, scale=True),  # 데이터를 float32 형식으로 변환 및 스케일링
+        v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # 정규화
     ])
 
     return transform
