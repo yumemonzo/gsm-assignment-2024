@@ -3,7 +3,7 @@
 분류하는 데 사용됩니다. 모델은 2개의 컨볼루션 층, 1개의 최대 풀링 층, 2개의 완전 연결층(Fully Connected Layer)으로 구성되어 있습니다.
 
 Author: yumemonzo@gmail.com
-Date: 2024-11-18
+Date: 2024-11-26
 """
 
 import torch

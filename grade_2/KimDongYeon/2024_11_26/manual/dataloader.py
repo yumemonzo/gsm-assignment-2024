@@ -3,7 +3,7 @@
 훈련 및 테스트 데이터셋을 생성하고 분할하는 기능을 제공합니다.
 
 Author: yumemonzo@gmail.com
-Date: 2024-11-18
+Date: 2024-11-26
 """
 
 import torch
@@ -59,5 +59,5 @@ def split_dataset(dataset: Dataset, split_size: float) -> Tuple[Dataset, Dataset
     size_A = int(split_size * len(dataset))
     size_B = len(dataset) - size_A
     dataset_A, dataset_B = random_split(dataset, [size_A, size_B])
-    
+
     return dataset_A, dataset_B
