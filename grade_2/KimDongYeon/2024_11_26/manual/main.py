@@ -1,80 +1,62 @@
 """
-이 파일은 CIFAR-10 데이터셋을 사용하여 간단한 CNN 모델을 학습, 검증, 테스트하는 작업을 수행합니다.
-데이터셋 준비, 모델 구성, 학습/평가 관리를 포함한 전 과정을 메인 함수에서 처리합니다.
-
-구체적인 기능:
-1. CIFAR-10 데이터셋 로드 및 변환
-2. 학습, 검증, 테스트 데이터셋 분할 및 로더(DataLoader) 생성
-3. CNN(SimpleCNN) 모델 구성
-4. 모델 학습(Trainer 클래스 사용)
-5. 테스트 데이터셋 평가 및 결과 출력
+이 스크립트는 이미지 분류를 위한 CNN 모델을 학습시키는 코드로, Hydra를 사용하여 동적으로 설정을 관리합니다.
+데이터셋 분할, 하이퍼파라미터, 로깅 등을 구성 가능한 방식으로 지원합니다.
 
 Author: yumemonzo@gmail.com
 Date: 2024-11-26
 """
 
+import logging
+import hydra
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from omegaconf import OmegaConf, DictConfig
 from torch.utils.data import DataLoader
 from dataloader import get_transform, get_datasets, split_dataset
 from model import SimpleCNN
 from trainer import Trainer
-from utils import ensure_dir_exists
 
 
-def main():
+@hydra.main(version_base=None, config_path="./config", config_name="train")
+def main(cfg: DictConfig) -> None:
     """
-    모델 학습 및 평가를 관리하는 메인 함수.
+    Hydra 설정을 사용하여 CNN 모델을 구성하고 학습하는 메인 함수입니다.
 
-    1. 데이터셋을 준비하고, 학습, 검증, 테스트 데이터셋으로 분할합니다.
-    2. 모델, 손실 함수, 옵티마이저를 정의합니다.
-    3. Trainer 클래스를 사용하여 모델을 학습, 검증, 평가합니다.
-    4. 최종적으로 테스트 데이터셋에 대한 손실 및 정확도를 출력합니다.
+    Args:
+        cfg (DictConfig): Hydra가 로드한 설정 객체입니다. 데이터 로딩, 학습 파라미터, 
+            모델 구성과 관련된 설정 정보를 포함합니다.
     """
+    OmegaConf.to_yaml(cfg)
+    output_dir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
 
-    # 하이퍼파라미터 설정
-    output_dir = "./outputs"  # 출력 결과 저장 경로
-    train_ratio = 0.8  # 학습 데이터 비율
-    batch_size = 64  # 배치 크기
-    lr = 0.0001  # 학습률
-    epochs = 30  # 학습 에포크 수
+    logger = logging.getLogger("training")
+    logger.setLevel(logging.DEBUG)
 
-    # 출력 디렉토리 확인 및 생성
-    ensure_dir_exists(output_dir)
-
-    # 데이터 변환 정의
     transform = get_transform()
 
-    # CIFAR10 데이터셋 로드 및 분할
     train_dataset, test_dataset = get_datasets(transform=transform)
-    train_dataset, valid_dataset = split_dataset(dataset=train_dataset, split_size=train_ratio)
-    print(f"train_dataset: {len(train_dataset)} | valid_dataset: {len(valid_dataset)} | test_dataset: {len(test_dataset)}\n")
+    train_dataset, valid_dataset = split_dataset(dataset=train_dataset, split_size=cfg.data.train_ratio)
+    logger.info(f"train_dataset: {len(train_dataset)} | valid_dataset: {len(valid_dataset)} | test_dataset: {len(test_dataset)}\n")
 
-    # 데이터 로더 생성
-    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(dataset=valid_dataset, batch_size=batch_size, shuffle=False)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=cfg.data.batch_size, shuffle=True)
+    valid_loader = DataLoader(dataset=valid_dataset, batch_size=cfg.data.batch_size, shuffle=False)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=cfg.data.batch_size, shuffle=False)
 
-    # 학습 장치 설정 (GPU 또는 CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"device: {device}\n")
+    logger.info(f"device: {device}\n")
 
-    # 모델 초기화 및 장치로 이동
     model = SimpleCNN().to(device)
-    print(f"model: {model}\n")
+    logger.info(f"model: {model}\n")
 
-    # 옵티마이저 및 손실 함수 정의
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=cfg.train.lr)
     criterion = nn.CrossEntropyLoss()
 
-    # Trainer 클래스 초기화 및 학습 시작
     trainer = Trainer(model, train_loader, valid_loader, criterion, optimizer, device, save_dir=output_dir)
-    trainer.training(num_epochs=epochs)
+    trainer.training(num_epochs=cfg.train.num_epochs, logger=logger)
 
-    # 테스트 데이터셋 평가
     test_loss, test_acc = trainer.test(test_loader)
-    print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}")
+    logger.info(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}")
 
 
 if __name__ == "__main__":
