@@ -1,0 +1,9 @@
+logger:
+  name: "training"
+data:
+  train_ratio: 0.8
+  batch_size: 64
+train:
+  seed: 1
+  lr: 0.001
+  num_epochs: 30

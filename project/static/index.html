@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIFAR-10 Image Prediction</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- 메인 컨텐츠 -->
+    <div class="main-content">
+      <h1>CIFAR-10 Image Prediction</h1>
+      <form id="upload-form">
+        <input type="file" id="image-upload" accept="image/*" required />
+        <button type="submit">Predict</button>
+      </form>
+      <div id="result"></div>
+      <img id="uploaded-image" src="" alt="" hidden />
+    </div>
+
+    <!-- 클래스 이미지 -->
+    <div class="class-info">
+      <h2>CIFAR-10 Examples</h2>
+      <img src="cifar10_class.jpg" alt="CIFAR-10 Examples" />
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
